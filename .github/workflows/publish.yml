@@ -1,0 +1,44 @@
+name: Publish Dockerfile
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to use for the docker image
+        default: 'latest'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        default: 'latest'
+        required: false
+        type: string
+
+jobs:
+  build:
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: awilderinorg/helix-auth-svc
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: .
+          dockerfile: ./containers/hub/Dockerfile
+          tags: ${{ inputs.tag }}
